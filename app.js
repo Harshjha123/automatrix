@@ -8,7 +8,7 @@ require('dotenv').config();
 const app = express();
 const port = 8080;
 
-const whitelist = ['http://192.168.242.227:3000', 'https://automatrix-35efa.web.app'];
+const whitelist = ['http://192.168.242.227:3000', 'https://automatrix-zalim.web.app'];
 let corsOptions = {
     origin: function (origin, callback) {
         if (whitelist.indexOf(origin) !== -1 || !origin) {
@@ -29,7 +29,7 @@ app.use(express.json());
 app.use(cors(corsOptions));
 
 const bot = new Telegraf('6420664426:AAGY864gWztBfg7746wURNUoyk9zADtLZ0U');
-bot.launch()
+//bot.launch()
 
 mongoose.connect(process.env.MONGODB_URI)
     .then(response => {
