@@ -30,7 +30,7 @@ app.use(cors(corsOptions));
 
 const bot = new Telegraf('6420664426:AAGY864gWztBfg7746wURNUoyk9zADtLZ0U');
 
-bot.telegram.setWebhook('https://your-domain.com/secret-path');
+bot.telegram.setWebhook('https://urchin-app-7wesj.ondigitalocean.app/secret-path');
 
 bot.startWebhook('/secret-path', null, 3000);
 
