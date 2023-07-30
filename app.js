@@ -29,6 +29,11 @@ app.use(express.json());
 app.use(cors(corsOptions));
 
 const bot = new Telegraf('6420664426:AAGY864gWztBfg7746wURNUoyk9zADtLZ0U');
+
+bot.telegram.setWebhook('https://your-domain.com/secret-path');
+
+bot.startWebhook('/secret-path', null, 3000);
+
 bot.launch()
 
 mongoose.connect(process.env.MONGODB_URI)
