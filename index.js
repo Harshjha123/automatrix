@@ -452,7 +452,30 @@ app.post('/my/investments', async (req, res) => {
 })
 
 // Team Record
-app.post('/my/team', async (req, res) => {})
+app.post('/my/team', async (req, res) => {
+    const { token } = req.body
+    const level = parseFloat(req.body.level)
+
+    if (!token) {
+        return res.status(400).send({ error: 'Failed to get account' })
+    }
+
+    if(level !== 1 && level !==2 && level !== 3) {
+        return res.status(400).send({ error: 'Please mention team level' })
+    }
+
+    try {
+        let getUser = await User.findOne({ token })
+        if (!getUser) return res.status(400).send({ logout: true, error: 'No account exist' })
+        if (!getUser.status) return res.status(400).send({ error: 'Your account has been blocked' })
+
+        let referral = await Referral.findOne({ id: getUser.id })
+        return res.status(200).send({ income: referral.income, referral: { lv1: referral.lv1.length, lv2: referral.lv2.length, lv3: referral.lv3.length }, record: referral[level === 1 ? 'lv1' : level === 2 ? 'lv2' : 'lv3'] })
+    } catch (error) {
+        console.log('/my/team error: ', error);
+        return res.status(400).send({ error: 'Failed to fetch records' })
+    }
+})
 
 // Account Record
 app.post('/account/records', async (req, res) => {

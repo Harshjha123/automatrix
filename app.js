@@ -6,9 +6,8 @@ const { Telegraf } = require('telegraf');
 require('dotenv').config();
 
 const app = express();
-const port = 8080;
 
-const whitelist = ['http://192.168.242.227:3000', 'https://automatrix-zalim.web.app'];
+const whitelist = ['http://192.168.126.227:3000', 'https://automatrix-zalim.web.app'];
 let corsOptions = {
     origin: function (origin, callback) {
         if (whitelist.indexOf(origin) !== -1 || !origin) {
@@ -29,11 +28,6 @@ app.use(express.json());
 app.use(cors(corsOptions));
 
 const bot = new Telegraf('6420664426:AAGY864gWztBfg7746wURNUoyk9zADtLZ0U');
-
-bot.telegram.setWebhook('https://urchin-app-7wesj.ondigitalocean.app/secret-path');
-
-bot.startWebhook('/secret-path', null, 3000);
-
 bot.launch()
 
 mongoose.connect(process.env.MONGODB_URI)
