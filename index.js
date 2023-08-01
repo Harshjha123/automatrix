@@ -134,6 +134,19 @@ const plans = [
 
 let defaultId = '9cbe16a0-d238-4212-907e-ebfe7cb94db4'
 
+async function checkStatus() {
+    let siteStatus = await Status.findOne({ id: defaultId })
+    if (siteStatus) return;
+
+    let record = new Status({
+        id: defaultId
+    })
+
+    record.save()
+}
+
+checkStatus()
+
 // Status Checking { --main route }
 app.get('/', async (req, res) => {
     try {
@@ -167,16 +180,6 @@ app.post('/register', async (req, res) => {
             }
         }
 
-        /*if (!code || code.length !== 8) {
-            return res.status(400).send({ error: 'Invalid or expired 2fa code'})
-        } else {
-            let isCode = await Code.findOne({ email, code })
-
-            if(!isCode) {
-                return res.status(400).send({ error: 'Invalid or expired 2fa code'})
-            }
-        } */
-
         const id = randomString(8, '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ')
         const token = crypto.randomBytes(64).toString('hex')
 
@@ -208,6 +211,51 @@ app.post('/register', async (req, res) => {
         userRecord.save()
         balanceRecord.save()
         referralRecord.save()
+
+        await Status.findOneAndUpdate({ id: defaultId }, {
+            $inc: {
+                users: 1
+            }
+        })
+
+        if (lv1) {
+            await referralModel.findOneAndUpdate({ id: lv1 }, {
+                $push: {
+                    lv1: {
+                        user: id,
+                        deposits: 0,
+                        income: 0,
+                        date: Date.now()
+                    }
+                }
+            })
+        }
+
+        if (lv2) {
+            await referralModel.findOneAndUpdate({ id: lv2 }, {
+                $push: {
+                    lv2: {
+                        user: id,
+                        deposits: 0,
+                        income: 0,
+                        date: Date.now()
+                    }
+                }
+            })
+        }
+
+        if (lv3) {
+            await referralModel.findOneAndUpdate({ id: lv3 }, {
+                $push: {
+                    lv3: {
+                        user: id,
+                        deposits: 0,
+                        income: 0,
+                        date: Date.now()
+                    }
+                }
+            })
+        }
 
         return res.sendStatus(200)
     } catch (error) {
@@ -387,40 +435,73 @@ app.post('/product/purchase', async (req, res) => {
                         referral: cost * 0.15
                     }
                 })
+
+                let lvlFinancialRecord1 = new Financial({
+                    id: getUser.lv1,
+                    type: true,
+                    amount: cost * 0.15,
+                    title: 'Referral Commission',
+                    img: 'https://img.icons8.com/?size=2x&id=Z3Ag07iFGqba&format=png',
+                    date: Date.now(),
+                })
+
+                lvlFinancialRecord1.save()
             }
 
             if (getUser.lv2) {
                 await Referral.updateOne({ id: getUser.lv2, 'lv2.user': getUser.id }, {
                     $inc: {
                         "lv2.$.deposits": cost,
-                        "lv2.$.income": cost * 0.7,
-                        "income.lv2": cost * 0.7
+                        "lv2.$.income": cost * 0.07,
+                        "income.lv2": cost * 0.07
                     }
                 })
 
                 await Balance.findOneAndUpdate({ id: getUser.lv2 }, {
                     $inc: {
-                        withdraw: cost * 0.7,
-                        referral: cost * 0.7
+                        withdraw: cost * 0.07,
+                        referral: cost * 0.07
                     }
                 })
+
+                let lvlFinancialRecord2 = new Financial({
+                    id: getUser.lv2,
+                    type: true,
+                    amount: cost * 0.07,
+                    title: 'Referral Commission',
+                    img: 'https://img.icons8.com/?size=2x&id=Z3Ag07iFGqba&format=png',
+                    date: Date.now(),
+                })
+
+                lvlFinancialRecord2.save()
             }
 
             if (getUser.lv3) {
                 await Referral.updateOne({ id: getUser.lv3, 'lv3.user': getUser.id }, {
                     $inc: {
                         "lv3.$.deposits": cost,
-                        "lv3.$.income": cost * 0.3,
-                        "income.lv3": cost * 0.3
+                        "lv3.$.income": cost * 0.03,
+                        "income.lv3": cost * 0.03
                     }
                 })
 
                 await Balance.findOneAndUpdate({ id: getUser.lv3 }, {
                     $inc: {
-                        withdraw: cost * 0.3,
-                        referral: cost * 0.3
+                        withdraw: cost * 0.03,
+                        referral: cost * 0.03
                     }
                 })
+
+                let lvlFinancialRecord3 = new Financial({
+                    id: getUser.lv3,
+                    type: true,
+                    amount: cost * 0.03,
+                    title: 'Referral Commission',
+                    img: 'https://img.icons8.com/?size=2x&id=Z3Ag07iFGqba&format=png',
+                    date: Date.now(),
+                })
+
+                lvlFinancialRecord3.save()
             }
         }
 
