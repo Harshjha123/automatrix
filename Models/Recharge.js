@@ -1,3 +1,5 @@
+const mongoose = require('mongoose')
+
 let schema = new mongoose.Schema({
     id: String,
     order_id: String,
@@ -15,3 +17,5 @@ let schema = new mongoose.Schema({
         default: 'Pending'
     }
 })
+
+module.exports = mongoose.model('recharge', schema)
