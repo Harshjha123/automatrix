@@ -6,6 +6,7 @@ let schema = new mongoose.Schema({
         type: Number,
         default: Date.now()
     },
+    img: String,
     type: Boolean,
     amount: Number,
     title: String
