@@ -123,7 +123,7 @@ router.post('/request', async (req, res) => {
 
 router.post('/callback', async (req, res) => {
     console.log(req.body)
-    
+
     try {
         return res.sendStatus(200)
     } catch (error) {
@@ -131,3 +131,5 @@ router.post('/callback', async (req, res) => {
         return res.status(400)
     }
 })
+
+module.exports = router
