@@ -80,7 +80,7 @@ router.post('/request', async (req, res) => {
             attr: {
                 address: address,
                 chain: 'TRON',
-                url: 'https://asset-avenue-c65zs.ondigitalocean.app/recharge/callback/crypto',
+                url: 'https://asset-avenue-c65zs.ondigitalocean.app/recharge/callback',
             },
         };
 
@@ -122,9 +122,12 @@ router.post('/request', async (req, res) => {
 })
 
 router.post('/callback', async (req, res) => {
+    console.log(req.body)
+    
     try {
-
+        return res.sendStatus(200)
     } catch (error) {
-
+        console.log('/Callback error: ', error);
+        return res.status(400)
     }
 })

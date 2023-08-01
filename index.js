@@ -12,6 +12,7 @@ const Status = require('./Models/Status.js')
 
 const withdrawalRoute  = require('./withdraw.js')
 app.use('/withdraw', withdrawalRoute)
+app.use('/recharge', rechargeRoute)
 
 var mailFormat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
 
@@ -158,7 +159,7 @@ app.get('/', async (req, res) => {
 
 // Registration
 app.post('/register', async (req, res) => {
-    const { email, password, confirm_password, inviter, code } = req.body
+    const { email, password, confirm_password, inviter } = req.body
 
     if (!email) return res.status(400).send({ error: 'Please enter your email address' })
     if (!mailFormat.test(email)) return res.status(400).send({ error: 'Please enter a valid email' })
@@ -167,6 +168,9 @@ app.post('/register', async (req, res) => {
     if (!confirm_password || confirm_password !== password) return res.status(400).send({ error: `Confirm password didn't matched` })
 
     try {
+        let isEmail = await User.findOne({ email })
+        if (isEmail) return res.status(400).send({ error: 'Email exists already' })
+
         let lv1, lv2, lv3;
         if(inviter) {
             let isInviter = await User.findOne({ id: inviter.toUpperCase()})
