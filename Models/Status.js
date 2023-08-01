@@ -18,7 +18,10 @@ const schema = new mongoose.Schema({
         type: Number,
         default: 0
     },
-    records: {}
+    daily: {
+        type: Array,
+        default: []
+    }
 })
 
 module.exports = mongoose.model('status', schema)
