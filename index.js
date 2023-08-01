@@ -219,7 +219,7 @@ app.post('/register', async (req, res) => {
         })
 
         if (lv1) {
-            await referralModel.findOneAndUpdate({ id: lv1 }, {
+            await Referral.findOneAndUpdate({ id: lv1 }, {
                 $push: {
                     lv1: {
                         user: id,
@@ -232,7 +232,7 @@ app.post('/register', async (req, res) => {
         }
 
         if (lv2) {
-            await referralModel.findOneAndUpdate({ id: lv2 }, {
+            await Referral.findOneAndUpdate({ id: lv2 }, {
                 $push: {
                     lv2: {
                         user: id,
@@ -245,7 +245,7 @@ app.post('/register', async (req, res) => {
         }
 
         if (lv3) {
-            await referralModel.findOneAndUpdate({ id: lv3 }, {
+            await Referral.findOneAndUpdate({ id: lv3 }, {
                 $push: {
                     lv3: {
                         user: id,
