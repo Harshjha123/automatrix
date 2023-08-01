@@ -424,7 +424,6 @@ app.post('/product/purchase', async (req, res) => {
                 );
             }
 
-
             if (getUser.lv1) {
                 await Referral.updateOne({ id: getUser.lv1, 'lv1.user': getUser.id }, {
                     $inc: {
@@ -475,7 +474,7 @@ app.post('/product/purchase', async (req, res) => {
                     amount: cost * 0.07,
                     title: 'Referral Commission',
                     img: 'https://img.icons8.com/?size=2x&id=Z3Ag07iFGqba&format=png',
-                    date: Date.now(),
+                    date: Date.now()
                 })
 
                 lvlFinancialRecord2.save()
