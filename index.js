@@ -10,6 +10,7 @@ const Code = require('./Models/Code.js');
 const Financial = require('./Models/Financial.js');
 const Status = require('./Models/Status.js')
 
+const rechargeRoute = require('./recharge.js')
 const withdrawalRoute  = require('./withdraw.js')
 app.use('/withdraw', withdrawalRoute)
 app.use('/recharge', rechargeRoute)
