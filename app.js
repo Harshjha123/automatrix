@@ -28,7 +28,7 @@ app.use(express.json());
 app.use(cors(corsOptions));
 
 const bot = new Telegraf('6420664426:AAGY864gWztBfg7746wURNUoyk9zADtLZ0U');
-bot.launch()
+//bot.launch()
 
 mongoose.connect(process.env.MONGODB_URI)
     .then(response => {
