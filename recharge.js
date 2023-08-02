@@ -244,7 +244,7 @@ router.post('/callback', async (req, res) => {
 
                 return res.sendStatus(200)
             }
-        } else if (asset === 'USDT_TRON' && type === 'native') {
+        } else if (asset === 'USDT_TRON' && type === 'trc20') {
             if (amount < 0.01) return res.sendStatus(200)
 let min = 1
 
