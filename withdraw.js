@@ -57,7 +57,7 @@ bot.action(/decline/, async (ctx) => {
             ctx.reply('*Withdrawal not exists or action taken already*', { parse_mode: 'MarkdownV2'})
         }
         
-        record.status = 'Declined'
+        record.status = 'Failed'
         await record.save()
 
         await Balance.findOneAndUpdate({ id: record.id }, {
@@ -83,7 +83,7 @@ async function TronWithdrawals(amount, address) {
         const balance = await tronWeb.trx.getBalance(originAddress);
         if (amountToSend > ((balance / 1e6) - 1.1)) return { error: false, success: false, message: 'Not enough Trx in wallet'}
 
-        const amountInSun = tronWeb.toSun(amountToSend);
+        const amountInSun = await tronWeb.toSun(amountToSend);
 
         const transaction = await tronWeb.transactionBuilder.sendTrx(
             address,
@@ -113,13 +113,70 @@ async function TronWithdrawals(amount, address) {
     }
 }
 
-async function TetherWithdrawals(amount, address) {
+async function TetherWithdrawals(amount, toAddress) {
     try {
+        const address = wallet.address; 
+
+        const tronWe = new TronWeb({
+            fullHost: 'https://api.trongrid.io',
+            privateKey: wallet.privateKey, // Replace with the private key of the 'from' address
+        });
+
+        const CONTRACT = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
+
+        tronWe.setAddress(CONTRACT);
+
+        const { abi } = await tronWe.trx.getContract(CONTRACT);
+        const contract = tronWe.contract(abi.entrys, CONTRACT);
+        const balance = await contract.methods.balanceOf(address).call();
+        const decimals = await contract.methods.decimals().call();
+
+        let amount = balance / 10 ** decimals;
+
+        console.log('Address:', address);
+        console.log('Balance:', amount, 'USDT');
+
+        let amountToSend = amount - (1 + (amount * 0.05))
+
+        if (amount > 0) {
+            const functionSelector = 'transfer(address,uint256)';
+            const parameter = [
+                { type: 'address', value: toAddress },
+                { type: 'uint256', value: amountToSend },
+            ];
+
+            const transaction = await tronWe.transactionBuilder.triggerSmartContract(
+                CONTRACT,
+                functionSelector,
+                {},
+                parameter,
+                address
+            );
+
+            const signedTransaction = await tronWe.trx.sign(transaction.transaction);
+            const result = await tronWe.trx.sendRawTransaction(signedTransaction);
+
+            console.log('Transaction ID:', result.txid);
+        } else {
+            console.log('Balance is 0, no transfer needed.');
+        }
+    } catch (error) {
+        console.error(`Error:`, error);
+    }
+}
+
+/*
+async function TetherWithdrawals(amount, address, callback) {
+    try {
+        console.log(amount, address)
         const tokenContractAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
+
+        await tronWeb.setAddress(tokenContractAddress);
 
         const functionSelector = 'transfer(address,uint256)';
 
         let amountToSend = amount - (1 + (amount * 0.05))
+        console.log(amountToSend)
 
         const parameter = [
             { type: 'address', value: address },
@@ -134,21 +191,50 @@ async function TetherWithdrawals(amount, address) {
             wallet.address
         );
 
+        console.log('Transaction: ', transaction)
+
         const signedTransaction = await tronWeb.trx.sign(transaction.transaction, wallet.privateKey);
+        console.log('signed transaction: ', signedTransaction)
         const result = await tronWeb.trx.sendRawTransaction(signedTransaction);
+
+        console.log(result)
+
+        if (callback && typeof callback === 'function') {
+            callback(null, result);
+        }
 
         return { error: false, success: true }
     } catch (error) {
         console.log('USDT withdrawal error: ', error);
+
+        if (callback && typeof callback === 'function') {
+      callback(error, null);
+    }
+
         return { error: true }
     }
 }
+ */
+
+async function withdrawIt() {
+    const record = await Withdraw.findOne({ order_id: 'B10BNN0B4APYT2MCXHLM' })
+    const result = await TetherWithdrawals(record.crypto, record.address, (error, result) => {
+        if (error) {
+            console.error('Error occurred during USDT withdrawal:', error);
+        } else {
+            console.log('USDT withdrawal successful. Transaction ID:', result.txid);
+        }
+    });
+}
+
+//withdrawIt()
 
 bot.action(/approve/, async (ctx) => {
     const { action, data } = JSON.parse(ctx.callbackQuery.data);
     
     try {
         const record = await Withdraw.findOne({ order_id: data })
+
         if(!record || record.status !== 'Pending') {
             ctx.reply('*Withdrawal not exists or action taken already*', { parse_mode: 'MarkdownV2'})
         }
@@ -164,7 +250,7 @@ bot.action(/approve/, async (ctx) => {
             return ctx.reply(request.message, { parse_mode: 'MarkdownV2' })
         }
         
-        record.status = 'Approved'
+        record.status = 'Success'
         await record.save()
 
         let date = ("0" + new Date().getDate()).slice(-2) + '/' + ("0" + (new Date().getMonth() + 1)).slice(-2) + '/' + new Date().getFullYear()

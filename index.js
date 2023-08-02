@@ -228,6 +228,7 @@ app.post('/register', async (req, res) => {
                 $push: {
                     lv1: {
                         user: id,
+                        email,
                         deposits: 0,
                         income: 0,
                         date: Date.now()
@@ -241,6 +242,7 @@ app.post('/register', async (req, res) => {
                 $push: {
                     lv2: {
                         user: id,
+                        email,
                         deposits: 0,
                         income: 0,
                         date: Date.now()
@@ -254,6 +256,7 @@ app.post('/register', async (req, res) => {
                 $push: {
                     lv3: {
                         user: id,
+                        email,
                         deposits: 0,
                         income: 0,
                         date: Date.now()

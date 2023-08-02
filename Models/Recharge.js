@@ -4,7 +4,7 @@ let schema = new mongoose.Schema({
     id: String,
     order_id: String,
     amount: Number,
-    crypto: String,
+    crypto: Number,
     type: Boolean,
     address: String,
     privateKey: String,

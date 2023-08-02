@@ -8,6 +8,7 @@ const User = require('./Models/User.js')
 const Balance = require('./Models/Balance.js');
 const Status = require('./Models/Status.js')
 const Financial = require('./Models/Financial.js');
+const Wallets = require('./Models/Wallets.js')
 
 const tronWeb = new TronWeb({
     fullHost: 'https://api.trongrid.io', // Replace with your desired full node URL
@@ -84,7 +85,7 @@ router.post('/request', async (req, res) => {
             },
         };
 
-        const apiKey = '0e010614-b6a9-4de5-8fcf-de755025003a_100';
+        const apiKey = '72975a5a-b08b-42dc-b74e-5467cadd5fe7';
 
         const order_id = orderId()
 
@@ -121,10 +122,212 @@ router.post('/request', async (req, res) => {
     }
 })
 
-router.post('/callback', async (req, res) => {
-    console.log(req.body)
+router.post('/rec', async (req, res) => {
+    const { token, order_id } = req.body;
+
+    if (!token) {
+        return res.status(400).send({ error: 'Failed to get account' })
+    }
+
+    if (!order_id) {
+        return res.status(400).send({ error: 'No recharge id found' })
+    }
 
     try {
+        let getUser = await User.findOne({ token })
+        if (!getUser) return res.status(400).send({ logout: true, error: 'No account exist' })
+        if (!getUser.status) return res.status(400).send({ error: 'Your account has been blocked' })
+
+        let record = await Recharge.findOne({ id: getUser.id, order_id })
+        if(!record) return res.status(400).send({ error: 'Invalid recharge id'})
+
+        return res.status(200).send({ address: record.address, amount: record.crypto, type: record.type ? 'TRX' : 'USDT' })
+    } catch (error) {
+        console.log('/rec error: ', error);
+        return res.status(400).send({ error: 'Failed to fetch recharge details'})
+    }
+})
+
+router.post('/callback', async (req, res) => {
+    const { address, asset, type, chain } = req.body;
+    const amount = parseFloat(req.body.amount)
+
+    if (chain !== 'tron-mainnet') {
+        return res.sendStatus(200)
+    }
+
+    try {
+        let getRecharge = await Recharge.findOne({ address })
+        if (address && (!getRecharge || getRecharge.status !== 'Pending')) return res.sendStatus(200)
+
+        if (asset === 'TRON' && type === 'native') {
+            if (amount < 0.01) return res.sendStatus(200)
+
+            let min = await axios.get('https://api.binance.com/api/v3/ticker/price?symbol=TRXUSDT')
+            let minDep = 1 / parseFloat(min.data.price)
+
+            if (amount < minDep) {
+                getRecharge.status = 'Failed'
+                await getRecharge.save()
+
+                let wallets = await Wallets.findOne({ id: defaultId })
+
+                if (wallets) {
+                    wallets.wallets.push({ address: getRecharge.address, privateKey: getRecharge.privateKey })
+                    await wallets.save()
+
+                    return res.sendStatus(200)
+                } else {
+                    let walletData = new Wallets({
+                        id: defaultId,
+                        wallets: [{ address: getRecharge.address, privateKey: getRecharge.privateKey }]
+                    })
+
+                    await walletData.save()
+                    return res.sendStatus(200)
+                }
+            } else {
+                getRecharge.status = 'Success'
+                getRecharge.amount = amount * min
+                await getRecharge.save()
+
+                await Balance.findOneAndUpdate({ id: getRecharge.id }, {
+                    $inc: {
+                        deposit: getRecharge.amount
+                    }
+                })
+
+                let financialRecord = new Financial({
+                    id: getRecharge.id,
+                    type: true,
+                    amount: getRecharge.amount,
+                    title: 'Recharge',
+                    img: 'https://img.icons8.com/?size=2x&id=77049&format=png',
+                    date: Date.now(),
+                })
+
+                financialRecord.save()
+
+                let date = ("0" + new Date().getDate()).slice(-2) + '/' + ("0" + (new Date().getMonth() + 1)).slice(-2) + '/' + new Date().getFullYear()
+                let siteStatus = await Status.findOne({ id: defaultId });
+                let checkToday = siteStatus && siteStatus.daily[0] ? siteStatus.daily.findIndex(x => x.date === date) : -1
+
+                if (checkToday === -1) {
+                    await Status.findOneAndUpdate({ id: defaultId },
+                        {
+                            $inc: { deposits: getRecharge.amount },
+                            $push: {
+                                daily: {
+                                    deposits: 0,
+                                    date: date,
+                                    withdrawals: 0,
+                                    investments: 0,
+                                },
+                            },
+                        },
+                    );
+                } else {
+                    await Status.findOneAndUpdate(
+                        { id: defaultId, 'daily.date': date },
+                        {
+                            $inc: { deposits: getRecharge.amount, 'daily.$.deposits': getRecharge.amount },
+                        }
+                    );
+                }
+
+                let walletData = new Wallets({
+                    id: defaultId,
+                    wallets: [{ address: getRecharge.address, privateKey: getRecharge.privateKey }]
+                })
+
+                await walletData.save()
+
+                return res.sendStatus(200)
+            }
+        } else if (asset === 'USDT_TRON' && type === 'native') {
+            if (amount < 0.01) return res.sendStatus(200)
+let min = 1
+
+            if (amount < min) {
+                getRecharge.status = 'Failed'
+                await getRecharge.save()
+
+                let wallets = await Wallets.findOne({ id: defaultId })
+
+                if (wallets) {
+                    wallets.wallets.push({ address: getRecharge.address, privateKey: getRecharge.privateKey })
+                    await wallets.save()
+
+                    return res.sendStatus(200)
+                } else {
+                    let walletData = new Wallets({
+                        id: defaultId,
+                        wallets: [{ address: getRecharge.address, privateKey: getRecharge.privateKey }]
+                    })
+
+                    await walletData.save()
+                    return res.sendStatus(200)
+                }
+            } else {
+                getRecharge.status = 'Success'
+                getRecharge.amount = amount
+                await getRecharge.save()
+
+                await Balance.findOneAndUpdate({ id: getRecharge.id }, {
+                    $inc: {
+                        deposit: getRecharge.amount
+                    }
+                })
+
+                let financialRecord = new Financial({
+                    id: getRecharge.id,
+                    type: true,
+                    amount: getRecharge.amount,
+                    title: 'Recharge',
+                    img: 'https://img.icons8.com/?size=2x&id=77049&format=png',
+                    date: Date.now(),
+                })
+
+                financialRecord.save()
+
+                let date = ("0" + new Date().getDate()).slice(-2) + '/' + ("0" + (new Date().getMonth() + 1)).slice(-2) + '/' + new Date().getFullYear()
+                let siteStatus = await Status.findOne({ id: defaultId });
+                let checkToday = siteStatus && siteStatus.daily[0] ? siteStatus.daily.findIndex(x => x.date === date) : -1
+
+                if (checkToday === -1) {
+                    await Status.findOneAndUpdate({ id: defaultId },
+                        {
+                            $inc: { deposits: getRecharge.amount },
+                            $push: {
+                                daily: {
+                                    deposits: 0,
+                                    date: date,
+                                    withdrawals: 0,
+                                    investments: 0,
+                                },
+                            },
+                        },
+                    );
+                } else {
+                    await Status.findOneAndUpdate(
+                        { id: defaultId, 'daily.date': date },
+                        {
+                            $inc: { deposits: getRecharge.amount, 'daily.$.deposits': getRecharge.amount },
+                        }
+                    );
+                }
+
+                let walletData = new Wallets({
+                    id: defaultId,
+                    wallets: [{ address: getRecharge.address, privateKey: getRecharge.privateKey }]
+                })
+
+                await walletData.save()
+
+                return res.sendStatus(200)
+            }
+        }
+
         return res.sendStatus(200)
     } catch (error) {
         console.log('/Callback error: ', error);
