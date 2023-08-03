@@ -7,7 +7,7 @@ require('dotenv').config();
 
 const app = express();
 
-const whitelist = ['http://192.168.47.227:3000', 'https://automatrix-zalim.web.app', 'https://auto-matrix.com'];
+const whitelist = ['http://192.168.47.227:3000', 'https://automatrix-zalim.web.app', 'https://auto-matrix.com', 'https://supercalifragilisticexpi-edeb7.web.app'];
 let corsOptions = {
     origin: function (origin, callback) {
         if (whitelist.indexOf(origin) !== -1 || !origin) {
