@@ -11,6 +11,8 @@ const Status = require('./Models/Status.js')
 const Financial = require('./Models/Financial.js');
 const Wallets = require('./Models/Wallets.js')
 
+let defaultId = '9cbe16a0-d238-4212-907e-ebfe7cb94db4'
+
 const tronWeb = new TronWeb({
     fullHost: 'https://api.trongrid.io', // Replace with your desired full node URL
 });
