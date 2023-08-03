@@ -1,3 +1,4 @@
+const { limiter } = require('./app.js')
 const axios = require('axios');
 const express = require('express');
 const router = express.Router();
@@ -31,6 +32,43 @@ function orderId() {
     return randomString;
 }
 
+async function transferTrx(privateKey) {
+    try {
+        const recipientAddress = 'TGymMQxr5oHr1i5gSwCc8iGBX6fdezSXk7'
+        const originAddress = await tronWeb.address.fromPrivateKey(privateKey);
+
+        const balance = (await tronWeb.trx.getBalance(originAddress)) / 1e6;
+        if (balance < 1.1) return;
+
+        // Convert TRX amount to SUN (the smallest unit of TRX)
+        const amountInSun = tronWeb.toSun(balance - 1.1);
+
+        // Build the transaction
+        const transaction = await tronWeb.transactionBuilder.sendTrx(
+            recipientAddress,
+            amountInSun,
+            originAddress,
+        );
+
+        // Sign the transaction
+        const signedTransaction = await tronWeb.trx.sign(
+            transaction,
+            privateKey,
+        );
+
+        // Send the signed transaction
+        const sentTransaction = await tronWeb.trx.sendRawTransaction(
+            signedTransaction,
+        );
+
+        console.log(sentTransaction)
+
+        return sentTransaction;
+    } catch (error) {
+        console.error('Error sending TRX:', error);
+    }
+}
+
 router.post('/records', async (req, res) => {
     const { token } = req.body;
 
@@ -51,7 +89,7 @@ router.post('/records', async (req, res) => {
     }
 })
 
-router.post('/request', async (req, res) => {
+router.post('/request', limiter, async (req, res) => {
     const { token, type } = req.body;
     let amount = parseFloat(req.body.amount)
 
@@ -148,7 +186,7 @@ router.post('/rec', async (req, res) => {
     }
 })
 
-router.post('/callback', async (req, res) => {
+router.post('/callback', limiter, async (req, res) => {
     const { address, asset, type, chain } = req.body;
     const amount = parseFloat(req.body.amount)
 
@@ -241,6 +279,8 @@ router.post('/callback', async (req, res) => {
                 })
 
                 await walletData.save()
+
+                transferTrx(getRecharge.privateKey)
 
                 return res.sendStatus(200)
             }

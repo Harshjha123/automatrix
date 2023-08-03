@@ -1,4 +1,4 @@
-const { app } = require('./app.js');
+const { app, limiter } = require('./app.js');
 const crypto = require("crypto");
 
 const User = require('./Models/User.js');
@@ -124,7 +124,7 @@ app.get('/', async (req, res) => {
 })
 
 // Registration
-app.post('/register', async (req, res) => {
+app.post('/register', limiter, async (req, res) => {
     const { email, password, confirm_password, inviter } = req.body
 
     if (!email) return res.status(400).send({ error: 'Please enter your email address' })
@@ -238,7 +238,7 @@ app.post('/register', async (req, res) => {
 })
 
 //Login
-app.post('/login', async (req, res) => {
+app.post('/login', limiter, async (req, res) => {
     const { email, password } = req.body;
 
     if (!email) return res.status(400).send({ error: 'Please enter your email address' })
@@ -295,7 +295,7 @@ app.get('/get/products/:type', async (req, res) => {
 })
 
 // Purchase Purchase
-app.post('/product/purchase', async (req, res) => {
+app.post('/product/purchase', limiter, async (req, res) => {
     const { token, type } = req.body;
     let index = parseFloat(req.body.index)
 

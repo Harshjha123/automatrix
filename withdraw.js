@@ -1,3 +1,4 @@
+const { limiter } = require('./app.js') 
 const axios = require('axios');
 const express = require('express');
 const router = express.Router();
@@ -299,7 +300,7 @@ function orderId() {
     return randomString;
 }
 
-router.post('/admin/action', async (req, res) => {
+router.post('/admin/action', limiter, async (req, res) => {
     const { token, id, action } = req.body;
 
     if (!token) return res.status(400).send({ error: 'Please mention token' })
@@ -309,7 +310,7 @@ router.post('/admin/action', async (req, res) => {
         let getWithdrawal = await Withdraw.findOne({ order_id: id })
         if (!getWithdrawal || getWithdrawal.status !== 'Pending') return res.status(400).send({ error: 'Withdrawal not exists or action taken already' })
 
-        if (action === (true || 'true')) {
+        if (action === true || action === 'true') {
             let address = getWithdrawal.address
             let amountToSend = getWithdrawal.crypto - (1.1 + (getWithdrawal.crypto * 0.05))
 
@@ -374,7 +375,7 @@ router.post('/admin/action', async (req, res) => {
             }
 
             return res.status(400).send({ error: 'Failed to send trx' })
-        } else if (type === (false || 'false')) {
+        } else if (action === false) {
             getWithdrawal.status = 'Failed'
             await getWithdrawal.save()
 
@@ -387,7 +388,7 @@ router.post('/admin/action', async (req, res) => {
             let financialRecord = new Financial({
                 id: getWithdrawal.id,
                 type: true,
-                amount: amount,
+                amount: getWithdrawal.amount,
                 title: 'Withdrawal Failed',
                 img: 'https://img.icons8.com/?size=2x&id=aK3O5X52eYvo&format=png',
                 date: Date.now(),
@@ -426,7 +427,7 @@ router.post('/records', async (req, res) => {
     }
 })
 
-router.post('/request', async (req, res) => {
+router.post('/request', limiter, async (req, res) => {
     const { method, token, address } = req.body;
 
     let amount = 0;

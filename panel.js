@@ -22,4 +22,17 @@ router.post('/data', async (req, res) => {
     }
 })
 
+router.post('/pending/withdrawals', async (req, res) => {
+    try {
+        const { token } = req.body;
+        if (!token) return res.status(400).send({ error: 'Failed to receive token' })
+
+        let users = await Withdraw.find({ status: 'Pending' })
+        return res.status(200).send({ records: users[0] ? users : [] })
+    } catch (error) {
+        console.log('/panel/pending/withdrawals error: ', error);
+        return res.status(400).send({ error: 'Failed to fetch data' })
+    }
+})
+
 module.exports = router
