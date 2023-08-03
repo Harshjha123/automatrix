@@ -206,8 +206,9 @@ router.post('/callback', limiter, async (req, res) => {
         if (asset === 'TRON' && type === 'native') {
             if (amount < 0.01) return res.sendStatus(200)
 
-            let min = parseFloat((await axios.get('https://api.binance.com/api/v3/ticker/price?symbol=TRXUSDT')).data.price)
-            let minDep = 1 / min.data.price
+            let mina = await axios.get('https://api.binance.com/api/v3/ticker/price?symbol=TRXUSDT')
+            let min = parseFloat(mina.data?.price)
+            let minDep = 1 / min
 
             if (amount < minDep) {
                 getRecharge.status = 'Failed'
