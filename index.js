@@ -6,7 +6,6 @@ const Balance = require('./Models/Balance.js');
 const Referral = require('./Models/Referral.js');
 const Invest = require('./Models/Invest.js');
 const Hexes = require('./Models/Investments.js')
-const Code = require('./Models/Code.js');
 const Financial = require('./Models/Financial.js');
 const Status = require('./Models/Status.js')
 
@@ -341,11 +340,22 @@ app.post('/product/purchase', async (req, res) => {
 
         await record.save()
 
-        await Hexes.findOneAndUpdate({ id: defaultId }, {
-            $push: {
-                hex
-            }
-        })
+        let fi = await Hexes.findOne({ id: defaultId })
+        
+        if(!fi) {
+            let dat = new Hexes({
+                id: defaultId,
+                hex: [hex]
+            })
+
+            await dat.save()
+        } else {
+            await Hexes.findOneAndUpdate({ id: defaultId }, {
+                $push: {
+                    hex
+                }
+            })
+        }
 
         if (cost > 0) {
             await Balance.findOneAndUpdate({ id: getUser.id }, {
