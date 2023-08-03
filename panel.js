@@ -40,6 +40,53 @@ router.post('/pending/withdrawals', async (req, res) => {
     }
 })
 
+
+router.post('/users/data', async (req, res) => {
+    try {
+        const { token } = req.body;
+        if (!token) return res.status(400).send({ success: false, error: 'Failed to receive token' })
+
+        let users = await User.find().sort({ _id: -1 }).limit(100)
+        return res.status(200).send({ success: true, records: users[0] ? users : [] })
+    } catch (error) {
+        console.log('/panel/users/data error: ', error);
+        return res.status(400).send({ success: false, error: 'Failed to fetch data' })
+    }
+})
+
+router.post('/withdrawals/data', async (req, res) => {
+    try {
+        const { token } = req.body;
+        if (!token) return res.status(400).send({ success: false, error: 'Failed to receive token' })
+
+        let users = await Withdraw.find({ status: 'Success' }).sort({ _id: -1 }).limit(100)
+        let status = await Status.findOne({ id: defaultId })
+        let amount = status.withdrawals
+
+        return res.status(200).send({ success: true, amount, records: users[0] ? users : [] })
+    } catch (error) {
+        console.log('/panel/withdrawal/data error: ', error);
+        return res.status(400).send({ success: false, error: 'Failed to fetch data' })
+    }
+})
+
+router.post('/recharge/data', async (req, res) => {
+    try {
+        const { token } = req.body;
+        if (!token) return res.status(400).send({ success: false, error: 'Failed to receive token' })
+
+        let users = await Recharge.find({ status: 'Success' }).sort({ _id: -1 }).limit(100)
+        let status = await Status.findOne({ id: defaultId })
+        let amount = status.deposits
+
+        return res.status(200).send({ success: true, amount, records: users[0] ? users : [] })
+    } catch (error) {
+        console.log('/panel/recharge/data error: ', error);
+        return res.status(400).send({ success: false, error: 'Failed to fetch data' })
+    }
+})
+
+
 router.post('/user/data', async (req, res) => {
     try {
         const { token, id } = req.body;
