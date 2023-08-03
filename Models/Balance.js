@@ -4,11 +4,11 @@ const schema = new mongoose.Schema({
     id: String,
     deposit: {
         type: Number,
-        default: 15000,
+        default: 0,
     },
     withdraw: {
         type: Number,
-        default: 15000,
+        default: 1,
     },
     referral: {
         type: Number,

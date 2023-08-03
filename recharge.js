@@ -190,6 +190,11 @@ router.post('/callback', limiter, async (req, res) => {
     const { address, asset, type, chain } = req.body;
     const amount = parseFloat(req.body.amount)
 
+    if (isNaN(amount)) {
+        console.log('Invalid amount:', req.body.amount);
+        return res.status(400).send('Invalid amount');
+    }
+
     if (chain !== 'tron-mainnet') {
         return res.sendStatus(200)
     }

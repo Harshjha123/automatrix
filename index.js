@@ -30,28 +30,28 @@ const plans = [
     {
         name: 'Mechatron',
         income: 0.16,
-        cost: 8,
+        cost: 5,
         period: 25,
         image: 'https://cdna.artstation.com/p/assets/images/images/029/800/282/20200828231051/smaller_square/jarlan-perez-mohs-31-print-web.jpg?1598674251'
     },
     {
         name: 'Nanotron',
         income: 0.1819,
-        cost: 30,
+        cost: 18,
         period: 22,
         image: 'https://cdnb.artstation.com/p/assets/images/images/029/517/735/20200818213315/smaller_square/jarlan-perez-mohs-39-print-web.jpg?1597804395'
     },
     {
         name: 'Cybertron',
         income: 0.2,
-        cost: 80,
+        cost: 60,
         period: 15,
         image: 'https://cdna.artstation.com/p/assets/images/images/029/800/232/20200828230614/smaller_square/jarlan-perez-mohs-27-v2-print-web.jpg?1598673975'
     },
     {
         name: 'Synthron',
         income: 0.21,
-        cost: 150,
+        cost: 135,
         period: 15,
         image: 'https://cdnb.artstation.com/p/assets/images/images/029/572/389/20200820194653/smaller_square/jarlan-perez-mohs-21-print-web.jpg?1597970813'
     },
