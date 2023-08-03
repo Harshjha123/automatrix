@@ -188,11 +188,7 @@ router.post('/rec', async (req, res) => {
 
 router.post('/callback', limiter, async (req, res) => {
     const { address, asset, type, chain } = req.body;
-    console.log(req.body, req.body.amount)
-
-    let body = JSON.parse(req.body)
-    const amount = parseFloat(req.body.amount)
-    console.log(amount)
+    const amount = Number(req.body.amount)
 
     if (isNaN(amount)) {
         console.log('Invalid amount:', req.body.amount);
