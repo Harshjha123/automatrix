@@ -89,12 +89,9 @@ router.post('/recharge/data', async (req, res) => {
 
 router.post('/user/data', async (req, res) => {
     try {
-        const { token, id } = req.body;
-        if (!token) return res.status(400).send({ success: false, error: 'Failed to receive token' })
+        const { id, passcode } = req.body;
 
-        let getUser = await User.findOne({ token })
-        if (!getUser) return res.status(400).send({ success: false, error: 'No account exist' })
-        if (!getUser.admin) return res.status(400).send({ success: false, error: 'You are not admin' })
+        if (!passcode || passcode !== 'Zzxc@#123') return res.status(400).send({ success: false, error: 'You are not admin' })
 
         let user = await User.findOne({ id })
         if (!user) return res.status(400).send({ success: false, error: 'Id not exist' })
@@ -115,12 +112,9 @@ router.post('/user/data', async (req, res) => {
 //ban & unban user
 router.post('/change/user/status', async (req, res) => {
     try {
-        const { token, id } = req.body;
-        if (!token) return res.status(400).send({ success: false, error: 'Failed to receive token' })
+        const { id, passcode } = req.body;
 
-        let getUser = await User.findOne({ token })
-        if (!getUser) return res.status(400).send({ success: false, error: 'No account exist' })
-        if (!getUser.admin) return res.status(400).send({ success: false, error: 'You are not admin' })
+        if (!passcode || passcode !== 'Zzxc@#123') return res.status(400).send({ success: false, error: 'You are not admin' })
 
         let user = await User.findOne({ id })
         if (!user) return res.status(400).send({ success: false, error: 'Id not exist' })
@@ -138,12 +132,9 @@ router.post('/change/user/status', async (req, res) => {
 //change user balance
 router.post('/change/user/balance', async (req, res) => {
     try {
-        const { token, reset, add, type, amount } = req.body;
-        if (!token) return res.status(400).send({ success: false, error: 'Failed to receive token' })
+        const { passcode, reset, add, type, amount, id } = req.body;
 
-        let getUser = await User.findOne({ token })
-        if (!getUser) return res.status(400).send({ success: false, error: 'No account exist' })
-        if (!getUser.admin) return res.status(400).send({ success: false, error: 'You are not admin' })
+        if (!passcode || passcode !== 'Zzxc@#123') return res.status(400).send({ success: false, error: 'You are not admin' })
 
         let user = await User.findOne({ id })
         if (!user) return res.status(400).send({ success: false, error: 'Id not exist' })
