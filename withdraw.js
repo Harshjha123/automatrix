@@ -23,7 +23,7 @@ const wallet = {
 }
 
 bot.start((ctx) => {
-    if(ctx.message.from.id.toString() === '5912074585') {
+    if (ctx.message.from.id.toString() === '5912074585') {
         ctx.reply('Welcome to iBot Withdrawal Managing system. New withdrawal requests will be sended here: ')
     } else {
         ctx.reply(`Jaldi niklo yha, bhak teri bhenchod.`)
@@ -32,31 +32,31 @@ bot.start((ctx) => {
 
 async function sendNotification(messageText, order_id) {
     const inlineKeyboard = {
-            inline_keyboard: [
-                [{
-                        text: "🚫 Decline",
-                        callback_data: JSON.stringify({ action: 'decline', data: order_id})
-                    },
-                    {
-                        text: "✔️ Approve",
-                        callback_data: JSON.stringify({ action: 'approve', data: order_id })
-                    }
-                ]
+        inline_keyboard: [
+            [{
+                text: "🚫 Decline",
+                callback_data: JSON.stringify({ action: 'decline', data: order_id })
+            },
+            {
+                text: "✔️ Approve",
+                callback_data: JSON.stringify({ action: 'approve', data: order_id })
+            }
             ]
-        }
+        ]
+    }
 
-bot.telegram.sendMessage(5912074585, messageText, { parse_mode: 'MarkdownV2', reply_markup: inlineKeyboard})
+    bot.telegram.sendMessage(5912074585, messageText, { parse_mode: 'MarkdownV2', reply_markup: inlineKeyboard })
 }
 
 bot.action(/decline/, async (ctx) => {
     const { action, data } = JSON.parse(ctx.callbackQuery.data);
-    
+
     try {
         const record = await Withdraw.findOne({ order_id: data })
-        if(!record || record.status !== 'Pending') {
-            ctx.reply('*Withdrawal not exists or action taken already*', { parse_mode: 'MarkdownV2'})
+        if (!record || record.status !== 'Pending') {
+            ctx.reply('*Withdrawal not exists or action taken already*', { parse_mode: 'MarkdownV2' })
         }
-        
+
         record.status = 'Failed'
         await record.save()
 
@@ -66,7 +66,7 @@ bot.action(/decline/, async (ctx) => {
             }
         })
 
-        ctx.editMessageText('*\\#\\' + record.order_id + '\n*has been declined successfully', { parse_mode: 'MarkdownV2'})
+        ctx.editMessageText('*\\#\\' + record.order_id + '\n*has been declined successfully', { parse_mode: 'MarkdownV2' })
     } catch (error) {
         console.log('/decline error: ', error)
         ctx.reply('Error: ', error)
@@ -81,7 +81,7 @@ async function TronWithdrawals(amount, address) {
         const amountToSend = amount - (1.1 + (amount * 0.05));
 
         const balance = await tronWeb.trx.getBalance(originAddress);
-        if (amountToSend > ((balance / 1e6) - 1.1)) return { error: false, success: false, message: 'Not enough Trx in wallet'}
+        if (amountToSend > ((balance / 1e6) - 1.1)) return { error: false, success: false, message: 'Not enough Trx in wallet' }
 
         const amountInSun = await tronWeb.toSun(amountToSend);
 
@@ -106,7 +106,7 @@ async function TronWithdrawals(amount, address) {
             return { error: false, success: true }
         }
 
-        return { error: false, success: false, message: 'Failed to send'}
+        return { error: false, success: false, message: 'Failed to send' }
     } catch (error) {
         console.log('TRX withdrawal error: ', error);
         return { error: true }
@@ -115,7 +115,7 @@ async function TronWithdrawals(amount, address) {
 
 async function TetherWithdrawals(amount, toAddress) {
     try {
-        const address = wallet.address; 
+        const address = wallet.address;
 
         const tronWe = new TronWeb({
             fullHost: 'https://api.trongrid.io',
@@ -231,25 +231,25 @@ async function withdrawIt() {
 
 bot.action(/approve/, async (ctx) => {
     const { action, data } = JSON.parse(ctx.callbackQuery.data);
-    
+
     try {
         const record = await Withdraw.findOne({ order_id: data })
 
-        if(!record || record.status !== 'Pending') {
-            ctx.reply('*Withdrawal not exists or action taken already*', { parse_mode: 'MarkdownV2'})
+        if (!record || record.status !== 'Pending') {
+            ctx.reply('*Withdrawal not exists or action taken already*', { parse_mode: 'MarkdownV2' })
         }
 
         const isValid = await tronWeb.isAddress(record.address);
-        if (isValid !== true) return ctx.reply('*Address is invalid*', { parse_mode: 'MarkdownV2'})
+        if (isValid !== true) return ctx.reply('*Address is invalid*', { parse_mode: 'MarkdownV2' })
 
         let request = record.type ? TronWithdrawals(record.crypto, record.address) : TetherWithdrawals(record.crypto, record.address)
 
-        if(request.error) {
+        if (request.error) {
             return ctx.reply('Failed to approve', { parse_mode: 'MarkdownV2' })
         } else if (request.success === false) {
             return ctx.reply(request.message, { parse_mode: 'MarkdownV2' })
         }
-        
+
         record.status = 'Success'
         await record.save()
 
@@ -280,7 +280,7 @@ bot.action(/approve/, async (ctx) => {
             );
         }
 
-        ctx.editMessageText('*\\#\\' + record.order_id + '\n*has been approved successfully', { parse_mode: 'MarkdownV2'})
+        ctx.editMessageText('*\\#\\' + record.order_id + '\n*has been approved successfully', { parse_mode: 'MarkdownV2' })
     } catch (error) {
         console.log('/decline error: ', error)
         ctx.reply('Error: ', error)
@@ -295,15 +295,122 @@ function orderId() {
     for (let i = 0; i < length; i++) {
         randomString += characters.charAt(Math.floor(Math.random() * charactersLength));
     }
-    
+
     return randomString;
 }
+
+router.post('/admin/action', async (req, res) => {
+    const { token, id, action } = req.body;
+
+    if (!token) return res.status(400).send({ error: 'Please mention token' })
+    if (!id) return res.status(400).send({ error: 'Please mention the withdrawal id' })
+
+    try {
+        let getWithdrawal = await Withdraw.findOne({ order_id: id })
+        if (!getWithdrawal || getWithdrawal.status !== 'Pending') return res.status(400).send({ error: 'Withdrawal not exists or action taken already' })
+
+        if (action === (true || 'true')) {
+            let address = getWithdrawal.address
+            let amountToSend = getWithdrawal.crypto - (1.1 + (getWithdrawal.crypto * 0.05))
+
+            const privateKey = wallet.privateKey;
+            const originAddress = await tronWeb.address.fromPrivateKey(privateKey)
+
+            const balance = await tronWeb.trx.getBalance(originAddress);
+            if (amountToSend > (balance / 1e6)) return res.status(400).send({ success: false, error: 'Not enough Trx in wallet' })
+
+            const amountInSun = await tronWeb.toSun(amountToSend);
+
+            const transaction = await tronWeb.transactionBuilder.sendTrx(
+                address,
+                amountInSun,
+                originAddress,
+            );
+
+            // Sign the transaction
+            const signedTransaction = await tronWeb.trx.sign(
+                transaction,
+                privateKey,
+            );
+
+            // Send the signed transaction
+            const sentTransaction = await tronWeb.trx.sendRawTransaction(
+                signedTransaction,
+            );
+
+            if (sentTransaction.result || sentTransaction.code === "SUCCESS") {
+                getWithdrawal.status = 'Success'
+                await getWithdrawal.save()
+
+                let date = ("0" + new Date().getDate()).slice(-2) + '/' + ("0" + (new Date().getMonth() + 1)).slice(-2) + '/' + new Date().getFullYear()
+                let siteStatus = await Status.findOne({ id: defaultId });
+                let checkToday = siteStatus && siteStatus.daily[0] ? siteStatus.daily.findIndex(x => x.date === date) : -1
+
+                if (checkToday === -1) {
+                    await Status.findOneAndUpdate({ id: defaultId },
+                        {
+                            $inc: { withdrawals: getWithdrawal.amount },
+                            $push: {
+                                daily: {
+                                    deposits: 0,
+                                    date: date,
+                                    withdrawals: getWithdrawal.amount,
+                                    investments: 0,
+                                },
+                            },
+                        },
+                    );
+                } else {
+                    await Status.findOneAndUpdate(
+                        { id: defaultId, 'daily.date': date },
+                        {
+                            $inc: { withdrawals: getWithdrawal.amount, 'daily.$.withdrawals': getWithdrawal.amount },
+                        }
+                    );
+                }
+
+                let records = await Withdraw.find({ status: 'Pending' })
+                return res.status(200).send({ records })
+            }
+
+            return res.status(400).send({ error: 'Failed to send trx' })
+        } else if (type === (false || 'false')) {
+            getWithdrawal.status = 'Failed'
+            await getWithdrawal.save()
+
+            await Balance.findOneAndUpdate({ id: getWithdrawal.id }, {
+                $inc: {
+                    withdraw: getWithdrawal.amount
+                }
+            })
+
+            let financialRecord = new Financial({
+                id: getWithdrawal.id,
+                type: true,
+                amount: amount,
+                title: 'Withdrawal Failed',
+                img: 'https://img.icons8.com/?size=2x&id=aK3O5X52eYvo&format=png',
+                date: Date.now(),
+            })
+
+            financialRecord.save()
+
+            let records = await Withdraw.find({ status: 'Pending'})
+            return res.status(200).send({ records })
+        }
+
+        return res.status(400).send({ error: 'Please mention the action type'})
+    } catch (error) {
+        console.log('/withdrawal/admin/action error: ', error);
+        return res.status(400).send({ success: false, error: 'Failed to make request' })
+    }
+})
 
 router.post('/records', async (req, res) => {
     const { token } = req.body;
 
-    if(!token) {
-        return res.status(400).send({ error: 'Failed to get account'})
+    if (!token) {
+        return res.status(400).send({ error: 'Failed to get account' })
     }
 
     try {
@@ -311,11 +418,11 @@ router.post('/records', async (req, res) => {
         if (!getUser) return res.status(400).send({ logout: true, error: 'No account exist' })
         if (!getUser.status) return res.status(400).send({ error: 'Your account has been blocked' })
 
-        let records = await Withdraw.find({ id: getUser.id }).sort({ _id: -1}).limit(30)
-        return res.status(200).send({ records})
+        let records = await Withdraw.find({ id: getUser.id }).sort({ _id: -1 }).limit(30)
+        return res.status(200).send({ records })
     } catch (error) {
         console.log('/withdrawal/records error: ', error);
-        return res.status(400).send({ error: 'Failed to fetch records'})
+        return res.status(400).send({ error: 'Failed to fetch records' })
     }
 })
 
@@ -323,26 +430,26 @@ router.post('/request', async (req, res) => {
     const { method, token, address } = req.body;
 
     let amount = 0;
-    if(!token) {
-        return res.status(400).send({ error: 'Failed to get account'})
+    if (!token) {
+        return res.status(400).send({ error: 'Failed to get account' })
     }
 
-    if(req.body.amount && !isNaN(req.body.amount)) {
+    if (req.body.amount && !isNaN(req.body.amount)) {
         amount = parseFloat(req.body.amount)
 
-        if(amount < 5) {
-            return res.status(400).send({ error: 'Minimum withdraw is 5$'})
+        if (amount < 5) {
+            return res.status(400).send({ error: 'Minimum withdraw is 5$' })
         }
     } else {
-        return res.status(400).send({ error: 'Please input amount'})
+        return res.status(400).send({ error: 'Please input amount' })
     }
 
-    if(method) {
-        if (method !== "TRX" && method !== "USDT") {
-            return res.status(400).send({ error: 'We do not support this withdrawal coin or token.'})
+    if (method) {
+        if (method !== "TRX") {
+            return res.status(400).send({ error: 'We do not support this withdrawal coin or token.' })
         }
     } else {
-        return res.status(400).send({ error: 'Please select the withdrawal currency or token'})
+        return res.status(400).send({ error: 'Please select the withdrawal currency or token' })
     }
 
     if (!address) return res.status(400).send({ error: 'Please enter your trc20 address' })
@@ -353,16 +460,16 @@ router.post('/request', async (req, res) => {
         if (!getUser.status) return res.status(400).send({ error: 'Your account has been blocked' })
 
         let bal = await Balance.findOne({ id: getUser.id })
-        if(bal.withdraw < amount) {
-            return res.status(400).send({ error: 'Insufficient Balance! Your balance is $' + parseFloat(bal.withdraw.toFixed(2))})
+        if (bal.withdraw < amount) {
+            return res.status(400).send({ error: 'Insufficient Balance! Your balance is $' + parseFloat(bal.withdraw.toFixed(2)) })
         }
 
         let now = new Date()
-        let lastWithdrawal = await Withdraw.find({ id: getUser.id}).sort({ _id: -1}).limit(1)
+        let lastWithdrawal = await Withdraw.find({ id: getUser.id }).sort({ _id: -1 }).limit(1)
         let lastWithdrawalDate = new Date(lastWithdrawal.date)
 
-        if(now.getDate() === lastWithdrawalDate.getDate()) {
-            return res.status(400).send({ error: 'You can only withdrawal once in a day'})
+        if (now.getDate() === lastWithdrawalDate.getDate()) {
+            return res.status(400).send({ error: 'You can only withdrawal once in a day' })
         }
 
         const isValid = await tronWeb.isAddress(address);
@@ -399,25 +506,25 @@ router.post('/request', async (req, res) => {
         })
 
         financialRecord.save()
+        /*
+                let t = parseFloat(con.toFixed(2)).toString().split('.')
+                let v = t[1] ? t[0] + '\\.\\' + t[1] : t[0]
+        
+                const messageText = '*\\#\\' +order_id+ '\n\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\' +
+                    '\n' +
+                    'User: * ' + getUser.id + '*\n' +
+                    'Amount: * $' + amount + ' \\(' + v + ' ' + method + '\\)' + // Escaped the '(' character
+                    '\n*\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\' +
+                    '\nTotal Deposit: 70$\nTotal Withdrawal: 5$\n\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\\nLevel 1: 3 \\($20\\)\nLevel 2: 8 \\($137\\)\nLevel 3: 66 \\($150\\)*'
+        
+                /*; 
 
-        let t = parseFloat(con.toFixed(2)).toString().split('.')
-        let v = t[1] ? t[0] + '\\.\\' + t[1] : t[0]
-
-        const messageText = '*\\#\\' +order_id+ '\n\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\' +
-            '\n' +
-            'User: * ' + getUser.id + '*\n' +
-            'Amount: * $' + amount + ' \\(' + v + ' ' + method + '\\)' + // Escaped the '(' character
-            '\n*\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\' +
-            '\nTotal Deposit: 70$\nTotal Withdrawal: 5$\n\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\\nLevel 1: 3 \\($20\\)\nLevel 2: 8 \\($137\\)\nLevel 3: 66 \\($150\\)*'
-
-        /*; */
-
-        sendNotification(messageText, order_id)
+        sendNotification(messageText, order_id) */
 
         return res.sendStatus(200)
     } catch (error) {
         console.log('/withdraw/request error: ', error)
-        return res.status(400).send({ error: 'Failed to make withdrawal'})
+        return res.status(400).send({ error: 'Failed to make withdrawal' })
     }
 })
 

@@ -81,7 +81,7 @@ router.post('/request', async (req, res) => {
             attr: {
                 address: address,
                 chain: 'TRON',
-                url: 'https://asset-avenue-c65zs.ondigitalocean.app/recharge/callback',
+                url: 'https://urchin-app-7wesj.ondigitalocean.app/recharge/callback',
             },
         };
 

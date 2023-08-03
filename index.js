@@ -12,6 +12,8 @@ const Status = require('./Models/Status.js')
 
 const rechargeRoute = require('./recharge.js')
 const withdrawalRoute  = require('./withdraw.js')
+const panelRoute = require('./panel.js')
+app.use('/panel', panelRoute)
 app.use('/withdraw', withdrawalRoute)
 app.use('/recharge', rechargeRoute)
 
@@ -23,43 +25,7 @@ function randomString(length, chars) {
     return result;
 }
 
-const plans2 = [
-    {
-        name: 'Electrix',
-        income: 0,
-        cost: 50,
-        period: 3,
-        image: 'https://cdnb.artstation.com/p/assets/images/images/035/245/217/20210227223430/smaller_square/jarlan-perez-mohs-03-print-web.jpg?1614486870'
-    },
-    {
-        name: 'Galvanix',
-        income: 0,
-        cost: 120,
-        period: 7,
-        image: 'https://cdnb.artstation.com/p/assets/images/images/029/886/107/20200901003257/smaller_square/jarlan-perez-mohs-16-print-front-web.jpg?1598938377'
-    },
-    {
-        name: 'Circuitra',
-        income: 0,
-        cost: 350,
-        period: 14,
-        image: 'https://cdnb.artstation.com/p/assets/images/images/031/009/499/20201010011010/smaller_square/jarlan-perez-mohs-06-print-web.jpg?1602310210'
-    },
-    {
-        name: 'Automaxa',
-        income: 0,
-        cost: 600,
-        period: 21,
-        image: 'https://cdna.artstation.com/p/assets/images/images/029/886/052/smaller_square/jarlan-perez-mohs-18-print-web.jpg?1598938123'
-    },
-    {
-        name: 'Atomika',
-        income: 0,
-        cost: 1500,
-        period: 28,
-        image: 'https://cdnb.artstation.com/p/assets/images/images/029/800/517/20200828233152/smaller_square/jarlan-perez-mohs-37-print-web.jpg?1598675512'
-    }
-]
+const plans2 = []
 
 const plans = [
     {
