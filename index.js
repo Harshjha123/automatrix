@@ -8,6 +8,7 @@ const Invest = require('./Models/Invest.js');
 const Hexes = require('./Models/Investments.js')
 const Financial = require('./Models/Financial.js');
 const Status = require('./Models/Status.js')
+const Cron = require('./Models/Cron.js')
 
 const rechargeRoute = require('./recharge.js')
 const withdrawalRoute  = require('./withdraw.js')
@@ -317,7 +318,8 @@ app.post('/product/purchase', limiter, async (req, res) => {
         if (!getUser) return res.status(400).send({ logout: true, error: 'No account exist' })
         if (!getUser.status) return res.status(400).send({ error: 'Your account has been blocked' })
 
-        const { cost, name, image, period, income } = plan;
+        const { cost, name, image, period } = plan;
+        let income = cost * plan.income
 
         let balance = await Balance.findOne({ id: getUser.id })
         let TB = parseFloat(balance.withdraw) + parseFloat(balance.deposit)
@@ -559,5 +561,128 @@ app.post('/account/records', async (req, res) => {
     } catch (error) {
         console.log('/account/records error: ', error);
         return res.status(400).send({ error: 'Failed to fetch records' })
+    }
+})
+
+app.post('/update', limiter, async (req, res) => {
+    try {
+        let records = await Hexes.findOne({ id: defaultId })
+        if (!records || !records.hex || !records.hex[0]) return res.send({ success: true });
+
+        let hex = records.hex;
+        console.log('length: ', hex.length)
+
+        const updatePromises = hex.map((documentId) => {
+            updateInv(documentId)
+        });
+
+        await Promise.all(updatePromises);
+
+        return res.send({ success: true })
+    } catch (error) {
+        console.log('Error: ', error)
+        return res.status(400).send({ success: false, error: 400 })
+    }
+})
+
+async function updateInv(hex) {
+    try {
+        let product = await Invest.findOne({ hex })
+        if (!product) return;
+
+        let findIt = plans.filter(x => x.name === product.name)[0]
+
+        product.daily = findIt.cost * findIt.income
+        await product.save()
+
+        console.log(hex)
+    } catch (error) {
+        console.log(error)
+        return error;
+    }
+}
+
+async function addDailyReturn(hex) {
+    try {
+        let product = await Invest.findOne({ hex })
+        if (!product) return;
+
+        if (new Date().getTime() > product.exp) {
+            await Invest.findOneAndDelete({ hex })
+            return;
+        }
+
+        let income = product.daily 
+
+        await Balance.findOneAndUpdate({ id: product.id }, {
+            $inc: {
+                product: income,
+                withdraw: income,
+            }
+        })
+
+        await Invest.findOneAndUpdate({ hex: product.hex }, {
+            $inc: {
+                total: income
+            }
+        })
+
+        let newFinancialRecord = new Financial({
+            id: product.id,
+            type: true,
+            amount: income,
+            title: 'Equipment Return',
+            img: 'https://img.icons8.com/?size=2x&id=eYaVJ9Nbqqbw&format=png',
+            date: Date.now(),
+        })
+
+        newFinancialRecord.save()
+        console.log(hex)
+        return;
+    } catch (error) {
+        return error;
+    }
+}
+
+app.post('/run/cron', limiter, async (req, res) => {
+    const { passcode } = req.body;
+    if (!passcode || passcode !== 'Zzxc@#123') return res.status(400).send({ success: false, error: 'passcode error' })
+
+    try {
+        let isProductList = await Hexes.findOne({ id: defaultId })
+        if (!isProductList || !isProductList.hex || !isProductList.hex[0]) return res.send({ success: true });
+
+        let date = ("0" + new Date().getDate()).slice(-2) + '/' + ("0" + (new Date().getMonth() + 1)).slice(-2) + '/' + new Date().getFullYear()
+        let isRunned = await Cron.findOne({ id: defaultId })
+        if (isRunned && isRunned.date === date) return res.send({ success: false, error: 'Cronjob already runned today' })
+
+        if (!isRunned) {
+            let cronRecord = new Cron({
+                id: defaultId,
+                date
+            })
+
+            cronRecord.save()
+        } else {
+            await Cron.findOneAndUpdate({ id: defaultId }, {
+                $set: {
+                    date
+                }
+            })
+        }
+
+        let hex = isProductList.hex;
+        console.log('length: ', hex.length)
+
+        const updatePromises = hex.map((documentId) => {
+            addDailyReturn(documentId)
+        });
+
+        await Promise.all(updatePromises);
+
+        return res.send({ success: true })
+    } catch (error) {
+        console.log('Error: ', error)
+        return res.status(400).send({ success: false, error: 400 })
     }
 })

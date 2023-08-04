@@ -8,13 +8,14 @@ async function call(url, data) {
     })
 }
 
-const url = 'https://urchin-app-7wesj.ondigitalocean.app/panel/change/user/balance'
+const url = 'https://urchin-app-7wesj.ondigitalocean.app/panel/add/product'
+
+let index = 5
 
 const data = {
     passcode: 'Zzxc@#123',
-    id: 'DM5RXEC3',
-    reset: true,
-    type: false
+    id: 'VIHI051E',
+    index: index - 1
 }
 
-//call(url, data)
+call(url, data)
