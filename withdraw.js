@@ -502,7 +502,7 @@ router.post('/request', limiter, async (req, res) => {
             type: false,
             amount: amount,
             title: 'Withdrawal',
-            img: 'https://img.icons8.com/?size=2x&id=77049&format=png',
+            img: 'https://img.icons8.com/?size=512&id=cpyBEaPNHbiv&format=png',
             date: Date.now(),
         })
 

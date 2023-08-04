@@ -370,7 +370,7 @@ app.post('/product/purchase', limiter, async (req, res) => {
                 type: false,
                 amount: cost,
                 title: 'Purchased ' + name,
-                img: 'https://img.icons8.com/?size=2x&id=77049&format=png',
+                img: 'https://img.icons8.com/?size=2x&id=onRL8z14YQvT&format=png',
                 date: Date.now(),
             })
 
@@ -435,22 +435,22 @@ app.post('/product/purchase', limiter, async (req, res) => {
                 await Referral.updateOne({ id: getUser.lv2, 'lv2.user': getUser.id }, {
                     $inc: {
                         "lv2.$.deposits": cost,
-                        "lv2.$.income": cost * 0.07,
-                        "income.lv2": cost * 0.07
+                        "lv2.$.income": cost * 0.03,
+                        "income.lv2": cost * 0.03
                     }
                 })
 
                 await Balance.findOneAndUpdate({ id: getUser.lv2 }, {
                     $inc: {
-                        withdraw: cost * 0.07,
-                        referral: cost * 0.07
+                        withdraw: cost * 0.03,
+                        referral: cost * 0.03
                     }
                 })
 
                 let lvlFinancialRecord2 = new Financial({
                     id: getUser.lv2,
                     type: true,
-                    amount: cost * 0.07,
+                    amount: cost * 0.03,
                     title: 'Referral Commission',
                     img: 'https://img.icons8.com/?size=2x&id=Z3Ag07iFGqba&format=png',
                     date: Date.now()
@@ -463,22 +463,22 @@ app.post('/product/purchase', limiter, async (req, res) => {
                 await Referral.updateOne({ id: getUser.lv3, 'lv3.user': getUser.id }, {
                     $inc: {
                         "lv3.$.deposits": cost,
-                        "lv3.$.income": cost * 0.03,
-                        "income.lv3": cost * 0.03
+                        "lv3.$.income": cost * 0.02,
+                        "income.lv3": cost * 0.02
                     }
                 })
 
                 await Balance.findOneAndUpdate({ id: getUser.lv3 }, {
                     $inc: {
-                        withdraw: cost * 0.03,
-                        referral: cost * 0.03
+                        withdraw: cost * 0.02,
+                        referral: cost * 0.02
                     }
                 })
 
                 let lvlFinancialRecord3 = new Financial({
                     id: getUser.lv3,
                     type: true,
-                    amount: cost * 0.03,
+                    amount: cost * 0.02,
                     title: 'Referral Commission',
                     img: 'https://img.icons8.com/?size=2x&id=Z3Ag07iFGqba&format=png',
                     date: Date.now(),
