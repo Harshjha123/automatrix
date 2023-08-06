@@ -25,9 +25,52 @@ function randomString(length, chars) {
     return result;
 }
 
-const plans2 = []
+const plans2 = [
+    {
+        name: 'Nextron',
+        income: 1.07,
+        cost: 15,
+        period: 7,
+        image: 'https://cdnb.artstation.com/p/assets/images/images/035/245/271/20210227223728/smaller_square/jarlan-perez-mohs-05-print-web.jpg?1614487048'
+    },
+    {
+        name: 'Sentinex',
+        income: 1.075,
+        cost: 40,
+        period: 7,
+        image: 'https://cdnb.artstation.com/p/assets/images/images/035/245/217/20210227223430/smaller_square/jarlan-perez-mohs-03-print-web.jpg?1614486870'
+    },
+    {
+        name: 'Stellaris',
+        income: 1.08,
+        cost: 75,
+        period: 7,
+        image: 'https://cdnb.artstation.com/p/assets/images/images/035/245/253/smaller_square/jarlan-perez-mohs-04-print-web.jpg?1614486957'
+    },
+    {
+        name: 'Synthia',
+        income: 1.085,
+        cost: 110,
+        period: 7,
+        image: 'https://cdnb.artstation.com/p/assets/images/images/031/058/427/20201012011239/smaller_square/jarlan-perez-mohs-10-print-web.jpg?1602483160'
+    },
+    {
+        name: 'Spectra',
+        income: 1.09,
+        cost: 250,
+        period: 7,
+        image: 'https://cdnb.artstation.com/p/assets/images/images/031/009/499/20201010011010/smaller_square/jarlan-perez-mohs-06-print-web.jpg?1602310210'
+    }
+]
 
 const plans = [
+    {
+        name: 'Novatron',
+        income: 0.125,
+        cost: 1,
+        period: 30,
+        image: 'https://cdnb.artstation.com/p/assets/images/images/035/246/393/smaller_square/jarlan-perez-arc-r-09-web.jpg?1614492372'
+    }, 
     {
         name: 'Mechatron',
         income: 0.16,
@@ -564,44 +607,6 @@ app.post('/account/records', async (req, res) => {
     }
 })
 
-app.post('/update', limiter, async (req, res) => {
-    try {
-        let records = await Hexes.findOne({ id: defaultId })
-        if (!records || !records.hex || !records.hex[0]) return res.send({ success: true });
-
-        let hex = records.hex;
-        console.log('length: ', hex.length)
-
-        const updatePromises = hex.map((documentId) => {
-            updateInv(documentId)
-        });
-
-        await Promise.all(updatePromises);
-
-        return res.send({ success: true })
-    } catch (error) {
-        console.log('Error: ', error)
-        return res.status(400).send({ success: false, error: 400 })
-    }
-})
-
-async function updateInv(hex) {
-    try {
-        let product = await Invest.findOne({ hex })
-        if (!product) return;
-
-        let findIt = plans.filter(x => x.name === product.name)[0]
-
-        product.daily = findIt.cost * findIt.income
-        await product.save()
-
-        console.log(hex)
-    } catch (error) {
-        console.log(error)
-        return error;
-    }
-}
-
 async function addDailyReturn(hex) {
     try {
         let product = await Invest.findOne({ hex })
@@ -644,45 +649,43 @@ async function addDailyReturn(hex) {
     }
 }
 
-app.post('/run/cron', limiter, async (req, res) => {
-    const { passcode } = req.body;
-    if (!passcode || passcode !== 'Zzxc@#123') return res.status(400).send({ success: false, error: 'passcode error' })
-
-    try {
-        let isProductList = await Hexes.findOne({ id: defaultId })
-        if (!isProductList || !isProductList.hex || !isProductList.hex[0]) return res.send({ success: true });
-
-        let date = ("0" + new Date().getDate()).slice(-2) + '/' + ("0" + (new Date().getMonth() + 1)).slice(-2) + '/' + new Date().getFullYear()
-        let isRunned = await Cron.findOne({ id: defaultId })
-        if (isRunned && isRunned.date === date) return res.send({ success: false, error: 'Cronjob already runned today' })
-
-        if (!isRunned) {
-            let cronRecord = new Cron({
-                id: defaultId,
-                date
-            })
-
-            cronRecord.save()
-        } else {
-            await Cron.findOneAndUpdate({ id: defaultId }, {
-                $set: {
-                    date
-                }
-            })
-        }
-
-        let hex = isProductList.hex;
-        console.log('length: ', hex.length)
-
-        const updatePromises = hex.map((documentId) => {
-            addDailyReturn(documentId)
-        });
-
-        await Promise.all(updatePromises);
-
-        return res.send({ success: true })
-    } catch (error) {
-        console.log('Error: ', error)
-        return res.status(400).send({ success: false, error: 400 })
+async function runCron() {
+    let isProductList = await Hexes.findOne({ id: defaultId })
+    if (!isProductList || !isProductList.hex || !isProductList.hex[0]) {
+        return console.log('Data: ', isProductList)
     }
-})
+
+    let date = ("0" + new Date().getDate()).slice(-2) + '/' + ("0" + (new Date().getMonth() + 1)).slice(-2) + '/' + new Date().getFullYear()
+    let isRunned = await Cron.findOne({ id: defaultId })
+    if (isRunned && isRunned.date === date) {
+        return console.log('Cronjob already runned today')
+    }
+
+    if (!isRunned) {
+        let cronRecord = new Cron({
+            id: defaultId,
+            date
+        })
+
+        cronRecord.save()
+        console.log('Called')
+    } else {
+        await Cron.findOneAndUpdate({ id: defaultId }, {
+            $set: {
+                date
+            }
+        })
+    }
+
+    let hex = isProductList.hex;
+    console.log('length: ', hex.length)
+
+    const updatePromises = hex.map((documentId) => {
+        addDailyReturn(documentId)
+    });
+
+    await Promise.all(updatePromises);
+    console.log('Done')
+}
+
+//runCron()

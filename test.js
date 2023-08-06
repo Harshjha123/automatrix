@@ -8,14 +8,10 @@ async function call(url, data) {
     })
 }
 
-const url = 'https://urchin-app-7wesj.ondigitalocean.app/panel/add/product'
-
-let index = 5
+const url = 'https://urchin-app-7wesj.ondigitalocean.app/run/cron'
 
 const data = {
-    passcode: 'Zzxc@#123',
-    id: 'VIHI051E',
-    index: index - 1
+    passcode: 'Zzxc@#123'
 }
 
 call(url, data)
