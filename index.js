@@ -28,35 +28,35 @@ function randomString(length, chars) {
 const plans2 = [
     {
         name: 'Nextron',
-        income: 1.07,
+        income: 0.35,
         cost: 15,
         period: 7,
         image: 'https://cdnb.artstation.com/p/assets/images/images/035/245/271/20210227223728/smaller_square/jarlan-perez-mohs-05-print-web.jpg?1614487048'
     },
     {
         name: 'Sentinex',
-        income: 1.075,
+        income: 0.355,
         cost: 40,
         period: 7,
         image: 'https://cdnb.artstation.com/p/assets/images/images/035/245/217/20210227223430/smaller_square/jarlan-perez-mohs-03-print-web.jpg?1614486870'
     },
     {
         name: 'Stellaris',
-        income: 1.08,
+        income: 0.36,
         cost: 75,
         period: 7,
         image: 'https://cdnb.artstation.com/p/assets/images/images/035/245/253/smaller_square/jarlan-perez-mohs-04-print-web.jpg?1614486957'
     },
     {
         name: 'Synthia',
-        income: 1.085,
+        income: 0.365,
         cost: 110,
         period: 7,
         image: 'https://cdnb.artstation.com/p/assets/images/images/031/058/427/20201012011239/smaller_square/jarlan-perez-mohs-10-print-web.jpg?1602483160'
     },
     {
         name: 'Spectra',
-        income: 1.09,
+        income: 0.37,
         cost: 250,
         period: 7,
         image: 'https://cdnb.artstation.com/p/assets/images/images/031/009/499/20201010011010/smaller_square/jarlan-perez-mohs-06-print-web.jpg?1602310210'
@@ -347,11 +347,12 @@ app.post('/product/purchase', limiter, async (req, res) => {
         return res.status(400).send({ error: 'Failed to get account' })
     }
 
-    if (type !== 'Normal' && type !== 'Advance' || index === null) {
+    if (type !== 'Normal' && type !== 'Advanced' || index === null) {
         return res.status(400).send({ error: 'Failed to get product'})
     }
 
     let plan = type === 'Normal' ? plans[index] : plans2[index]
+
     if(!plan) {
         return res.status(400).send({ error: 'Failed to get product'})
     }
