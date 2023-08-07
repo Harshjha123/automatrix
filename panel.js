@@ -174,12 +174,8 @@ router.post('/user/data', async (req, res) => {
         if (!user) return res.status(400).send({ success: false, error: 'Id not exist' })
 
         let balance = await Balance.findOne({ id })
-        let referral = await Referral.findOne({ id })
-        let recharge = await Recharge.find({ id }).sort({ _id: -1 }).limit(10)
-        let withdrawal = await Withdraw.find({ id }).sort({ _id: -1 }).limit(10)
-        let products = await Invest.find({ id }).sort({ _id: -1 })
 
-        return res.status(200).send({ success: true, recharge, withdrawal, products, referral: { lv1: { income: referral.income.lv1, record: referral.lv1_records }, lv2: { income: referral.income.lv2, record: referral.lv2_records }, lv3: { income: referral.income.lv3, record: referral.lv3_records } }, balance: { deposit: balance.deposit, withdraw: balance.withdraw, referral: balance.referral, product: balance.product }, user: { phone: `${user.country_code} ${user.phone}`, email: user.email, password: user.password, status: user.status, referrer: user.lv1, password: user.password } })
+        return res.status(200).send({ success: true, balance })
     } catch (error) {
         console.log('/panel/pending/withdrawals error: ', error);
         return res.status(400).send({ success: false, error: 'Failed to fetch data' })
