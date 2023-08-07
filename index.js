@@ -698,12 +698,17 @@ async function runCron() {
     let hex = isProductList.hex;
     console.log('length: ', hex.length)
 
-    const updatePromises = hex.map((documentId) => {
-        addDailyReturn(documentId)
-    });
+    const batchSize = 1000; // Set an appropriate batch size
+    const totalBatches = Math.ceil(hex.length / batchSize);
 
-    await Promise.all(updatePromises);
+    for (let i = 0; i < totalBatches; i++) {
+        console.log('Bath no. ', 1)
+        const batch = hex.slice(i * batchSize, (i + 1) * batchSize);
+        const updatePromises = batch.map((documentId) => addDailyReturn(documentId));
+        await Promise.all(updatePromises);
+    }
+
     console.log('Done')
 }
 
-runCron()
+//runCron()
