@@ -169,7 +169,7 @@ app.get('/', async (req, res) => {
 
 // Registration
 app.post('/register', limiter, async (req, res) => {
-    const { email, password, confirm_password, inviter } = req.body
+    const { email, password, captchaToken, confirm_password, inviter } = req.body
 
     if (!email) return res.status(400).send({ error: 'Please enter your email address' })
     if (!mailFormat.test(email)) return res.status(400).send({ error: 'Please enter a valid email' })
@@ -178,6 +178,20 @@ app.post('/register', limiter, async (req, res) => {
     if (!confirm_password || confirm_password !== password) return res.status(400).send({ error: `Confirm password didn't matched` })
 
     try {
+        const response = await axios.post(
+            'https://www.google.com/recaptcha/api/siteverify',
+            null,
+            {
+                params: {
+                    secret: '6LecMYonAAAAAH-ZzfEcUptapsNnitAV09mVEGGq', // Replace with your reCAPTCHA secret key
+                    response: captchaToken,
+                },
+            }
+        );
+
+        const { success } = response.data;
+        if(!success) return res.status(400).send({ error: 'Please try again'})
+
         let isEmail = await User.findOne({ email })
         if (isEmail) return res.status(400).send({ error: 'Email exists already' })
 
