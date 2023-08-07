@@ -673,6 +673,8 @@ async function runCron() {
 
     let date = ("0" + new Date().getDate()).slice(-2) + '/' + ("0" + (new Date().getMonth() + 1)).slice(-2) + '/' + new Date().getFullYear()
     let isRunned = await Cron.findOne({ id: defaultId })
+
+    console.log(isRunned.date, date)
     if (isRunned && isRunned.date === date) {
         return console.log('Cronjob already runned today')
     }
