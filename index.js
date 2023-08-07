@@ -704,4 +704,4 @@ async function runCron() {
     console.log('Done')
 }
 
-//runCron()
+runCron()

@@ -109,7 +109,7 @@ router.post('/pending/withdrawals', limiter, async (req, res) => {
         const { token } = req.body;
         if (!token) return res.status(400).send({ error: 'Failed to receive token' })
 
-        let users = await Withdraw.find({ status: 'Pending' })
+        let users = await Withdraw.find({ status: 'Pending' }).toLimit(30)
         return res.status(200).send({ records: users[0] ? users : [] })
     } catch (error) {
         console.log('/panel/pending/withdrawals error: ', error);
