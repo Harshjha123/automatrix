@@ -104,7 +104,7 @@ router.post('/data', async (req, res) => {
     }
 })
 
-router.post('/pending/withdrawals', limiter, async (req, res) => {
+router.post('/pending/withdrawals', async (req, res) => {
     try {
         const { token } = req.body;
         if (!token) return res.status(400).send({ error: 'Failed to receive token' })

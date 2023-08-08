@@ -9,6 +9,7 @@ const User = require('./Models/User.js')
 const Balance = require('./Models/Balance.js');
 const Status = require('./Models/Status.js')
 const Financial = require('./Models/Financial.js');
+const Recharge = require('./Models/Recharge.js')
 
 const { bot } = require('./app.js')
 
@@ -300,7 +301,7 @@ function orderId() {
     return randomString;
 }
 
-router.post('/admin/action', limiter, async (req, res) => {
+router.post('/admin/action',  async (req, res) => {
     const { token, id, action } = req.body;
 
     if (!token) return res.status(400).send({ error: 'Please mention token' })
@@ -464,6 +465,9 @@ router.post('/request', limiter, async (req, res) => {
         if (bal.withdraw < amount) {
             return res.status(400).send({ error: 'Insufficient Balance! Your balance is $' + parseFloat(bal.withdraw.toFixed(2)) })
         }
+
+        let depo = await Recharge.findOne({ id: getUser.id, status: 'Success' })
+        if(!depo) return res.status(400).send({ error: 'You must deposit to get withdrawal'})
 
         let now = new Date()
         let lastWithdrawal = await Withdraw.find({ id: getUser.id }).sort({ _id: -1 }).limit(1)
